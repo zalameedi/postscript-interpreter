@@ -1,5 +1,18 @@
+# Zeid Al-Ameedi
+# 10-25-2018
+# HWK4 Part 1 is meant to mimic the ghost interpreter (postscript) style
+# For details on each function please see attached file containing requirements in the repository
+
+# HWK4 Part 2 is meant to implement additional ghost script features to be specific 
+# parsing, if, ifelse, for, forall, interpreter and  testcases following each of them
+import re #Given as help code. module
+
 opstack = [] #operand stack
 dictstack = [] #dictionary stack
+
+psFunctions = ['def', 'push', 'pop', 'add', 'sub', 'mul', 'div', 'eq', 'gt', 'lt',
+                'length', 'get', 'and', 'or', 'not', 'dup', 'exch', 'copy', 'clear',
+                'stack', 'dict', 'begin', 'end', 'if', 'ifelse', 'for', 'forall']
 
 #operand's methods first
 
@@ -8,7 +21,8 @@ def opPop():
     try:
         return opstack.pop()
     except:
-        print("Operand stack is empty.")
+        return
+       # print("Operand stack is empty.")
 
 #Pushes a value on top of the stack
 def opPush(value):
@@ -57,6 +71,9 @@ def stack():
 
 
 # Arithmetic operators methods will reside below #
+
+#Each function does the corresponding action that it is named after
+#Before being pushed back onto the stack (The Answer)
 
 def add():
         if(len(opstack) > 1):
@@ -117,23 +134,33 @@ def gt():
 
 # *** TESTED ALL OF THE METHODS WITH GHOSTSCRIPT THE BEHAVIOR IS CORRECT *** #
 
+#Exchanges multiple values in their spots within the stack
 def exch():
-    temp1 = opPop()
-    temp2 = opPop()
-    opPush(temp1)
-    opPush(temp2)
+        if(len(opstack) > 1):
+                temp1 = opPop()
+                temp2 = opPop()
+                opPush(temp1)
+                opPush(temp2)
+        else:
+                print("Stack doesn't have enough values")
 
+# duplicates the last item on the stack and pushes it back on
 def dup():
-    temp1 = opPop()
-    opPush(temp1)
-    opPush(temp1)
+        if(len(opstack) > 0):
+                temp1 = opPop()
+                opPush(temp1)
+                opPush(temp1)
+        else:
+                print("Stack doesn't have enough values")
 
+#Completely just deletes all entries from the stack, points new reference to a empty stack
 def clear():
     opstack[:] = [] #Courtesy of stackoverflow 
     
 
 #Misc functions I missed
 
+#Copies and appends back onto a list
 def copy():
         if (len(opstack) > 0):
                 tempLst = []
@@ -147,7 +174,7 @@ def copy():
         else:
                 print("Stack is empty")       
 
-
+# Returns a certain position within a list
 def get():
         myLst = []
         if len(opstack) > 1:
@@ -161,7 +188,7 @@ def get():
         else:
                 print("Stack is empty.")
         
-
+#Returns the length of the list popped out of the stack
 def length():
         myLst = []
         increment = 0
@@ -173,13 +200,14 @@ def length():
         else:
                 print("Stack is empty.")
 
+#Dictionary operations, pops a dict then pushes an empty one
 def psDict():
         if len(opstack) > 0:
                 opPop()
                 opPush({})
         else:
                 print("Stack is empty.")
-
+#puts the dict out of opstack and into the dictstack
 def begin():
         myDict = {}
         if len(opstack) > 0:
@@ -187,7 +215,7 @@ def begin():
                 dictPush(myDict)
         else:
                 print("Stack is empty")
-
+#ends a dictionaries recent entry on the dictstack
 def end():
         dictPop()
         
@@ -240,225 +268,468 @@ def psNot():
         else:
                 print("Stack is empty.")
 
+#PART 2 SHALL BEGIN HERE
+
+def psIf():
+        if(len(opstack) > 1):
+                fn = opPop()
+                bVar = opPop()
+                if isinstance(bVar, bool):
+                        if bVar == True:
+                                interpretSPS(fn)
+                        else:
+                                pass
+                               # print("The operation will not be continued")
+                else:
+                        print("Error, value is not eligible for operation")
+                        opPush(bVar)
+                        opPush(fn)
+        else:
+                print("Stack doesn't have enough values.")
+def psIfElse():
+        if (len(opstack) > 1):
+                elseStatement = opPop()
+                ifStatement = opPop()
+                bVar = opPop()
+                if isinstance(bVar, bool):
+                        if(bVar == True):
+                                interpretSPS(ifStatement)
+                        else:
+                                interpretSPS(elseStatement)
+                else:
+                        print("Operations not consistent with If-Else format")
+                        opPush(bVar)
+                        opPush(ifStatement)
+                        opPush(elseStatement)
+        else:
+                print("Stack doesn't have enough values.")
+def psFor():
+        if (len(opstack) > 2):
+                exe = opPop() 
+                end = opPop() 
+                increment = opPop()
+                initial = opPop()
+
+                if initial < 0:
+                        print("Error. for loop cannot work given arguments")
+                        return False
+                if initial > end:
+                        print("Error. for loop cannot work given arguments")
+                        return False 
+                for i in range(4):
+                        opPop()
+                if initial < end:
+                        while initial <= end:
+                                opPush(initial)
+                                interpretSPS(exe)
+                                initial += increment
+                elif initial == end:
+                        opPush(initial)
+                        interpretSPS(exe)
+                else:
+                        while initial >= end:
+                                opPush(initial)
+                                interpretSPS(exe)
+                                initial += increment
+                return 
+
+# def forAll():
+#         #if (len(opstack) > 1):
+#         exe = opPop()
+#         arr = opPop()
+#         temp1 = opPop()
+#         temp2 = opPop()
+#         for index in arr:
+#                 opPush(index)
+#                 interpretSPS(exe)
+
+
+def forAll():
+
+    global opstack
+
+
+    code = opstack[-1]
+    arrayBlock = opstack[-2]
+
+    temp1 = opPop()
+    temp2 = opPop()
+
+    for i in arrayBlock:
+        opPush(i)
+        interpretSPS(code)
+
+
+
+def tokenize(s):
+    return re.findall("/?[a-zA-Z][a-zA-Z0-9_]*|[[][a-zA-Z0-9_\s!][a-zA-Z0-9_\s!]*[]]|[-]?[0-9]+|[}{]+|%.*|[^ \t\n]", s)
+
+
+def isInt(n): #Courtesy of https://stackoverflow.com/questions/1265665/how-can-i-check-if-a-string-represents-an-int-without-using-try-except
+        try:
+                int(n)
+                return True
+        except ValueError:
+                return False
+        # num = int(n)
+        # if type(num) is int:
+        #         return True
+        # else:
+        #         return False
+def parseHelper(tokens):
+        res=[]
+        index = 0 # To keep track of each variable that demands typecast
+        # it = iter(tokens)
+        for i in tokens:
+                if "." in i and isInt(i):
+                        tokens[index] = float(tokens[index]) #Typecasted
+                elif isInt(i):
+                        tokens[index] = int(tokens[index])
+                elif i[0] == "[": #Integer list only in str format
+                        #Delete brackets so we don't make a 2D array then -> typecast to list
+                        myLst = i.strip("[")
+                        myLst = myLst.strip("]")
+
+                        myLst2 = myLst.split(" ") #Extract every variable
+                        for temp in myLst2:
+                                if isInt(temp):
+                                        res.append(int(temp))
+                        tokens[index] = res
+                index = index+1
         
+        return tokens
+
+def parse(tokens):
+        res = parseHelper(tokens)
+        tokenLst = []
+        index = 0
+        it = iter(res)
+
+        for c in it:
+                if c == '{':
+                        temp = groupMatching(it)
+                        tokenLst.append(temp)
+                else:
+                        tokenLst.append(c)
+        return tokenLst
+               
+                
+def groupMatching(it):
+        res = []
+        for c in it:
+                if c == '}':
+                        return res
+                elif c == '{':
+                        res.append(groupMatching(it))
+                else:
+                        res.append(c)
+        return False
+
+# def groupMatching2(it): #renamed to parse
+#         res = []
+#         for c in it:
+#                 if c == '}':
+#                         return res
+#                 elif c == '{':
+#                         res.append(groupMatching2(it))
+#                 else:
+#                         res.append(c)
+#         return False
+
+def group(s):
+        res = []
+        it = iter(s)
+        for c in it:
+                if c=='}':
+                        return False
+                else:
+                        res.append(groupMatching(it))
+        return res
+
+def group2(L):
+        res = []
+        it = iter(L)
+        for c in it:
+                if c=='}':
+                        return False
+                elif c =='{':
+                        res.append(groupMatching2(it))
+                else:
+                        res.append(c)
+        return res
+
+
+def psFunctionCall(var):
+        if var == 'def':
+                psDef()
+        elif var == 'push':
+                opPush()
+        elif var == 'pop':
+                opPop()
+        elif var == 'add':
+                add()
+        elif var == 'sub':
+                sub()
+        elif var == 'mul':
+                mul()
+        elif var == 'div':
+                div()
+        elif var == 'eq':
+                eq()
+        elif var == 'gt':
+                gt()
+        elif var == 'lt':
+                lt()
+        elif var == 'length':
+                length()
+        elif var == 'get':
+                get()
+        elif var == 'and':
+                psAnd()
+        elif var == 'or':
+                psOr()
+        elif var == 'not':
+                psNot()
+        elif var == 'dup':
+                dup()
+        elif var == 'exch':
+                exch()
+        elif var == 'copy':
+                copy()
+        elif var == 'clear':
+                clear()
+        elif var == 'stack':
+                stack()
+        elif var == 'dict':
+                psDict()
+        elif var == 'begin':
+                begin()
+        elif var == 'end':
+                end()
+        elif var == 'if':
+                psIf()
+        elif var == 'ifelse':
+                psIfElse()
+        elif var == 'forall' or var == 'Forall' or var == 'forAll':
+                forAll()
+        elif var == 'for' or var == 'For':
+                psFor()
+        else:
+                print("Not a function. Shouldn't really be touched.")
+
+
+def interpretSPS(code): # code is a code array
+        for var in code:
+                if isinstance(var, int) or isinstance(var, bool) or isinstance(var, float):
+                        opPush(var) #If it's a bool or int just push it onto our stack
+                #Now if it's a string we have to check if it's a variable/string/function
+                # elif var[0] == "/":
+                #         opPush(var)
+                elif isinstance(var, str):
+                        if(var[0] == '/') or (var[0] == '('):
+                                opPush(var)
+                        # elif(var[0] == '('):
+                        #         opPush(var)
+                        elif var in psFunctions:
+                                psFunctionCall(var)
+                        elif var[0] == '[':
+                                myLst = list(var)
+                                opPush(myLst)
+                        else:
+                                psVar = lookup(var)
+                                if (isinstance(psVar, list)) or (isinstance(psVar, str)) or (isinstance(psVar, int)) or (isinstance(psVar, bool)):
+                                        opPush(psVar)
+                elif isinstance(var, list):
+                        opPush(var)
+                else:
+                        print("Post script could not identify the variable")
+                                                        
+def interpreter(s): # s is a string
+        interpretSPS(parse(tokenize(s))) 
+
 
 
 ##### TEST ZONE #########~~~!!!!!!!!!!!1
 
+def test_parse():
+        print("\n")
+        test = ['/x', ['dup', 'add'], 'def', 21, 'x', 'exch', 'add']
+        test2 = parse(tokenize("/x {dup add} def 21 x exch add"))
+        if test2 == test:
+                print("test_parse [1] success.")
+        else:
+                print(False)
+        test = ['/x', 21, 12, 'gt', ['add'], ['sub'], 'if']
+        test2 = parse(tokenize("""/x 21 12 gt {add} {sub} if"""))
+        if test2 == test:
+                print("test_parse [2] success.")
+        else:
+                print(False)
+        test=[1, 2, 3, 4, ['add'], 'for']
+        test2=parse(tokenize("""1 2 3 4 {add} for"""))
+        if test == test2:
+                print("test_parse [3] success.")
+        else:
+                print(False)
+        
+        
+        print("\n")
+def testpsFor():
+        clear() 
+        interpreter("1 1 10 {1 add}")
+        expected = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        psFor()
 
-#------- Part 1 TEST CASES--------------
-def testDefine():
-    define("/n1", 4)
-    if lookup("n1") != 4:
-        return False
-    return True
+        #Test Case 1
+        if opstack == expected:
+                print("PsFor() Test [1] success.")
+        else:
+                print(False)
+        
+        #Test Case 2
+        clear()
+        interpreter("1 1 5 {2 mul}")
+        expected = [2, 4 , 6, 8, 10]
+        psFor()
+        if opstack == expected:
+                print("PsFor() Test [2] success.")
+        else:
+                print(False)
 
-def testLookup():
-    opPush("/n1")
-    opPush(3)
-    psDef()
-    if lookup("n1") != 3:
-        return False
-    return True
+        #Test Case 3
+        clear()
+        interpreter("1 1 5 {2 div}")
+        expected = [.5, 1 , 1.5, 2, 2.5]
+        psFor()
+        if opstack == expected:
+                print("PsFor() Test [3] success.")
+        else:
+                print(False)
 
-#Arithmatic operator tests
-def testAdd():
-    opPush(1)
-    opPush(2)
-    add()
-    if opPop() != 3:
-        return False
-    return True
+def testpsIf():
+        print("\n")
+        clear()
+        interpreter("""/var1 10 def 10 var1 eq { 10 var1 add } if """)
+        expected=[20]
+        if opstack == expected:
+                print("PsIf() Test [1] success")
+        else:
+                print(False)
+        
+        #Test 2
+        clear()
+        interpreter("""/x 21 def 10 x lt {2 x mul} if""")
+        expected=[42]
+        if opstack == expected:
+                print("PsIf() Test [2] success")
+        else:
+                print(False)
+        
+        #Test 3
+        clear()
+        interpreter("""/x 100 def 1337 x gt { pop } if""")
+        if (opstack == []):
+                print("PsIf() Test [3] success")
+        else:
+                print(False)
 
-def testSub():
-    opPush(10)
-    opPush(4.5)
-    sub()
-    if opPop() != 5.5:
-        return False
-    return True
-
-def testMul():
-    opPush(2)
-    opPush(4.5)
-    mul()
-    if opPop() != 9:
-        return False
-    return True
-
-def testDiv():
-    opPush(10)
-    opPush(4)
-    div()
-    if opPop() != 2.5:
-        return False
-    return True
-    
-#Comparison operators tests
-def testEq():
-    opPush(6)
-    opPush(6)
-    eq()
-    if opPop() != True:
-        return False
-    return True
-
-def testLt():
-    opPush(3)
-    opPush(6)
-    lt()
-    if opPop() != True:
-        return False
-    return True
-
-def testGt():
-    opPush(3)
-    opPush(6)
-    gt()
-    if opPop() != False:
-        return False
-    return True
-
-#boolean operator tests
-def testPsAnd():
-    opPush(True)
-    opPush(False)
-    psAnd()
-    if opPop() != False:
-        return False
-    return True
-
-def testPsOr():
-    opPush(True)
-    opPush(False)
-    psOr()
-    if opPop() != True:
-        return False
-    return True
-
-def testPsNot():
-    opPush(True)
-    psNot()
-    if opPop() != False:
-        return False
-    return True
-
-#Array operator tests
-def testLength():
-    opPush([1,2,3,4,5])
-    length()
-    if opPop() != 5:
-        return False
-    return True
-
-def testGet():
-    opPush([1,2,3,4,5])
-    opPush(4)
-    get()
-    if opPop() != 5:
-        return False
-    return True
-
-#stack manipulation functions
-def testDup():
-    opPush(10)
-    dup()
-    if opPop()!=opPop():
-        return False
-    return True
-
-def testExch():
-    opPush(10)
-    opPush("/x")
-    exch()
-    if opPop()!=10 and opPop()!="/x":
-        return False
-    return True
-
-def testPop():
-    l1 = len(opstack)
-    opPush(10)
-    opPop()
-    l2= len(opstack)
-    if l1!=l2:
-        return False
-    return True
-
-def testCopy():
-    opPush(1)
-    opPush(2)
-    opPush(3)
-    opPush(4)
-    opPush(5)
-    opPush(2)
-    copy()
-    if opPop()!=5 and opPop()!=4 and opPop()!=5 and opPop()!=4 and opPop()!=3 and opPop()!=2:
-        return False
-    return True
-
-def testClear():
-    opPush(10)
-    opPush("/x")
-    clear()
-    if len(opstack)!=0:
-        return False
-    return True
-
-#dictionary stack operators
-def testDict():
-    opPush(1)
-    psDict()
-    if opPop()!={}:
-        return False
-    return True
-
-def testBeginEnd():
-    opPush("/x")
-    opPush(3)
-    psDef()
-    opPush({})
-    begin()
-    opPush("/x")
-    opPush(4)
-    psDef()
-    end()
-    if lookup("x")!=3:
-        return False
-    return True
-
-def testpsDef():
-    opPush("/x")
-    opPush(10)
-    psDef()
-    if lookup("x")!=10:
-        return False
-    return True
-
-def testpsDef2():
-    opPush("/x")
-    opPush(10)
-    psDef()
-    opPush(1)
-    psDict()
-    begin()
-    if lookup("x")!=10:
-        end()
-        return False
-    end()
-    return True
+def testpsIfelse():
+        print("\n")
+        clear()
+        interpreter("""/x 100 def 1337 x gt {2 x mul} {2 x div} ifelse""")
+        expected = [200]
+        if (opstack == expected):
+                print("PsIfelse() Test [1] success")
+        else:
+                print(False)
+        
+        clear()
+        interpreter("""/x 100 def 1337 x lt {2 x mul} {1000 x div} ifelse""")
+        expected = [10]
+        if (opstack == expected):
+                print("PsIfelse() Test [2] success")
+        else:
+                print(False)
+        
+        clear()
+        interpreter("""/x 100 def 100 x eq {1 x add} {2 x div} ifelse""")
+        expected = [101]
+        if (opstack == expected):
+                print("PsIfelse() Test [3] success")
+        else:
+                print(False)
 
 
-def main_part1():
-    testCases = [('define',testDefine),('lookup',testLookup),('add', testAdd), ('sub', testSub),('mul', testMul),('div', testDiv), \
-                 ('eq',testEq),('lt',testLt),('gt', testGt), ('psAnd', testPsAnd),('psOr', testPsOr),('psNot', testPsNot), \
-                 ('length', testLength),('get', testGet), ('dup', testDup), ('exch', testExch), ('pop', testPop), ('copy', testCopy), \
-                 ('clear', testClear), ('dict', testDict), ('begin', testBeginEnd), ('psDef', testpsDef), ('psDef2', testpsDef2)]
-    # add you test functions to this list along with suitable names
-    failedTests = [testName for (testName, testProc) in testCases if not testProc()]
-    if failedTests:
-        return ('Some tests failed', failedTests)
-    else:
-        return ('All part-1 tests OK')
+def testpsForAll():
+        clear()
+        expected = [101, 65]
+        interpreter("""[ 10 101 65 42 20] {dup 50 lt {pop} if} forall""")
+        if (opstack == expected):
+                print("testpsForAll [1] success.")
+        else:
+                print(False)
+        
+
+        clear()
+        expected = [2, 4, 6, 8, 10]
+        interpreter(""" [1 2 3 4 5] {dup 0 gt {2 mul} if} forall""")
+        if opstack == expected:
+                print("testpsForAll [2] success.")
+        
+        clear()
+        
+        interpreter("""[1 2 3 4 5] {dup 3 eq {pop} if} forall""")
+        expected = [1, 2, 4, 5]
+        if (opstack == expected):
+                print("testpsForAll [3] success.")
+        else:
+                print(False)
+        
+
+def testinterpreter():
+        print("\n")
+        clear()
+        expected = [2, 3, 4]
+        interpreter(""""1 1 3 {1 add} for """)
+        if opstack == expected:
+                print("Interpreter [1] success.")
+        else:
+                print(False)
+        clear()
+        expected = [2, 4, 6]
+        interpreter(""""1 1 3 {2 mul} for """)
+        if opstack == expected:
+                print("Interpreter [2] success.")
+        else:
+                print(False)
+        
+        clear()
+        expected = [30]
+        interpreter(""""10 20 add""")
+        if opstack == expected:
+                print("Interpreter [3] success.")
+        else:
+                print(False)
+
+
+
+
+
+
+def main_part2():
+       print("Initating Part 2 Tests.\n\n")
+       test_parse()
+       testpsFor()
+       testpsIf()
+       testpsIfelse()
+       testpsForAll()
+       testinterpreter()
+       print("Post script program complete.")
+       
+       
+
+
+
 
 if __name__ == '__main__':
-    print(main_part1())
+    main_part2()
