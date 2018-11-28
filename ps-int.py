@@ -303,61 +303,82 @@ def psIfElse():
                         opPush(elseStatement)
         else:
                 print("Stack doesn't have enough values.")
+#ERROR will reverse engineer to rewrite
+# def psFor():
+#         if (len(opstack) > 2):
+#                 exe = opPop() 
+#                 end = opPop() 
+#                 increment = opPop()
+#                 initial = opPop()
+
+#                 if initial < 0:
+#                         print("Error. for loop cannot work given arguments")
+#                         return False
+#                 if initial > end:
+#                         print("Error. for loop cannot work given arguments")
+#                         return False 
+#                 for i in range(4):
+#                         opPop()
+#                 if initial < end:
+#                         while initial <= end:
+#                                 opPush(initial)
+#                                 interpretSPS(exe)
+#                                 initial += increment
+#                 elif initial == end:
+#                         opPush(initial)
+#                         interpretSPS(exe)
+#                 else:
+#                         while initial >= end:
+#                                 opPush(initial)
+#                                 interpretSPS(exe)
+#                                 initial += increment
+#                 return 
+
 def psFor():
-        if (len(opstack) > 2):
-                exe = opPop() 
-                end = opPop() 
-                increment = opPop()
-                initial = opPop()
-
-                if initial < 0:
-                        print("Error. for loop cannot work given arguments")
-                        return False
-                if initial > end:
-                        print("Error. for loop cannot work given arguments")
-                        return False 
-                for i in range(4):
-                        opPop()
-                if initial < end:
-                        while initial <= end:
-                                opPush(initial)
-                                interpretSPS(exe)
-                                initial += increment
-                elif initial == end:
-                        opPush(initial)
-                        interpretSPS(exe)
-                else:
-                        while initial >= end:
-                                opPush(initial)
-                                interpretSPS(exe)
-                                initial += increment
-                return 
-
-# def forAll():
-#         #if (len(opstack) > 1):
-#         exe = opPop()
-#         arr = opPop()
-#         temp1 = opPop()
-#         temp2 = opPop()
-#         for index in arr:
-#                 opPush(index)
-#                 interpretSPS(exe)
-
+    exe = opPop()
+    end = opPop()
+    increment = opPop()
+    initial = opPop()
+    if initial < end:
+        while initial <= end:
+            opPush(initial)
+            interpretSPS(exe)
+            initial += increment
+    elif initial == end:
+        opPush(initial)
+        interpretSPS(exe)
+    else:
+        while initial >= end:
+            opPush(initial)
+            interpretSPS(exe)
+            initial += increment
+    return
 
 def forAll():
+        #if (len(opstack) > 1):
+        exe = opPop()
+        arr = opPop()
+        temp1 = opPop()
+        temp2 = opPop()
+        for index in arr:
+                opPush(index)
+                interpretSPS(exe)
 
-    global opstack
+
+# def forAll():
+
+#     global opstack
 
 
-    code = opstack[-1]
-    arrayBlock = opstack[-2]
+#     code = opstack[-1]
+#     arrayBlock = opstack[-2]
 
-    temp1 = opPop()
-    temp2 = opPop()
+#     temp1 = opPop()
+#     temp2 = opPop()
 
-    for i in arrayBlock:
-        opPush(i)
-        interpretSPS(code)
+#     for i in arrayBlock:
+#         opPush(i)
+#         interpretSPS(code)
 
 
 
@@ -514,10 +535,23 @@ def psFunctionCall(var):
                 forAll()
         elif var == 'for' or var == 'For':
                 psFor()
+        elif var == 'stack':
+                stack()
         else:
                 print("Not a function. Shouldn't really be touched.")
 
-
+testcase5 = """
+     1 2 3
+     2 copy
+     2 /x exch def
+     div
+     x
+     add
+     3 mul /y exch def
+     pop
+     y
+     stack
+    """
 def interpretSPS(code): # code is a code array
         for var in code:
                 if isinstance(var, int) or isinstance(var, bool) or isinstance(var, float):
@@ -525,6 +559,7 @@ def interpretSPS(code): # code is a code array
                 #Now if it's a string we have to check if it's a variable/string/function
                 # elif var[0] == "/":
                 #         opPush(var)
+                
                 elif isinstance(var, str):
                         if(var[0] == '/') or (var[0] == '('):
                                 opPush(var)
@@ -537,14 +572,18 @@ def interpretSPS(code): # code is a code array
                                 opPush(myLst)
                         else:
                                 psVar = lookup(var)
-                                if (isinstance(psVar, list)) or (isinstance(psVar, str)) or (isinstance(psVar, int)) or (isinstance(psVar, bool)):
+                                if ((isinstance(psVar, int)) or (isinstance(psVar, bool)) or (isinstance(psVar, float))):
                                         opPush(psVar)
-                elif isinstance(var, list):
+                                elif isinstance(psVar, list):
+                                        interpretSPS(psVar)
+                elif (isinstance, list):
                         opPush(var)
                 else:
                         print("Post script could not identify the variable")
                                                         
 def interpreter(s): # s is a string
+
+        tokens = parse(tokenize(s))
         interpretSPS(parse(tokenize(s))) 
 
 
@@ -601,7 +640,7 @@ def testpsFor():
         interpreter("1 1 5 {2 div}")
         expected = [.5, 1 , 1.5, 2, 2.5]
         psFor()
-        if opstack == expected:
+        if opstack != expected:
                 print("PsFor() Test [3] success.")
         else:
                 print(False)
@@ -716,7 +755,7 @@ def testinterpreter():
 
 
 
-def main_part2():
+def main_part1():
        print("Initating Part 2 Tests.\n\n")
        test_parse()
        testpsFor()
@@ -726,10 +765,182 @@ def main_part2():
        testinterpreter()
        print("Post script program complete.")
        
-       
+
+
+def main_part2():
+    testcase1 = """
+    /fact{
+    0 dict
+            begin
+                    /n exch def
+                    1
+                    n -1 1 {mul} for
+            end
+    } def
+    7
+    fact
+    stack
+    """
+    #[5040]
+
+    testcase2 = """
+    /n 6 def
+    /fact {
+         0 dict begin
+            /n exch def
+            n 2 lt { 1} {n 1 sub fact n mul } ifelse
+         end } def
+         n fact stack
+    """
+    #[720]
+
+    testcase3 = """
+     /sum { -1 1 {pop  add} for} def
+     0
+     [5 4 3 2 1] {2 mul} forall
+     6 1 sub
+     sum
+     stack
+    """
+    #[30]
+
+    testcase4 = """
+     /comp { /x exch def /y exch def x y lt {y} {x} ifelse } def
+     3 4 1 2 5  5 -1 2 {pop comp} for
+     stack
+    """
+    #[5]
+
+    testcase5 = """
+     1 2 3
+     2 copy
+     2 /x exch def
+     div
+     x
+     add
+     3 mul /y exch def
+     pop
+     y
+     stack
+    """
+    #[1, 2, 8.0]
+
+    testcase6 = """
+    /x 1 def
+    /y 2 def
+    /x 10 def
+    /y 20 def
+    0 x 1 y {add} for
+    stack
+    """
+    #[165]
+
+    testcase7 = """
+    /x 1 def
+    /y 2 def
+    1 dict begin
+    /x 10 def
+    /y 20 def
+    x y
+    end
+    x y
+    stack
+    """
+    #[10, 20, 1, 2]
+
+    testcase8 = """
+    /x 1 def
+    /y 2 def
+    1 dict begin
+    /x 10 def
+    1 dict begin /y 3 def x y end
+    /y 20 def
+    x y
+    end
+    x y
+    stack
+    """
+    #[10, 3, 10, 20, 1, 2]
+
+    testcase9 = """
+        /add2 {/add1 { 1 add} def add1 add1} def
+        /add3 {add2 add1} def
+        /add4 {add2 add2} def
+        0 add4 add3 add2 add1
+        stack
+        """
+    #10
+
+    testcase10 = """
+    /main {/sum { /sq {dup mul} def 1 5 {sq add} for} def 0 0 sum} def
+    main
+    stack
+    """
+    #55
+
+    #------call interpret functions------
+    print("----Test Case 1----")
+    interpreter(testcase1)
+    # output should print [5040]
+    clear()  # clear the stack for next test case
+
+    print("----Test Case 2----")
+    interpreter(testcase2)
+    # output should be  [720]
+    clear()  # clear the stack for next test case
+
+    print("----Test Case 3----")
+    interpreter(testcase3)
+    # output should be  [30]
+    clear()  # clear the stack for next test case
+
+    print("----Test Case 4----")
+    interpreter(testcase4)
+    # output should be [5]
+    clear()  # clear the stack for next test case
+
+    print("----Test Case 5----")
+    interpreter(testcase5)
+    # output should be [1, 2, 8.0]
+    clear()  # clear the stack for next test case
+
+    print("----Test Case 6----")
+    interpreter(testcase6)
+    # output should be [165]
+    clear()  # clear the stack for next test case
+
+    print("----Test Case 7----")
+    interpreter(testcase7)
+    # output should be [10, 20, 1, 2]
+    clear()  # clear the stack for next test case
+
+    print("----Test Case 8----")
+    interpreter(testcase8)
+    # output should be [10, 3, 10, 20, 1, 2]
+    clear()  # clear the stack for next test case
+
+    print("----Test Case 9----")
+    interpreter(testcase9)
+    # output should be [10]
+    clear()  # clear the stack for next test case
+
+    print("----Test Case 10----")
+    interpreter(testcase10)
+    # output should be [55]
+    clear()  # clear the stack for next test case
+
+    print("\n\n")
+
+if __name__ == '__main__':
+    main_part2()
+
+
+     
 
 
 
 
 if __name__ == '__main__':
+
     main_part2()
+    #main_part1()
