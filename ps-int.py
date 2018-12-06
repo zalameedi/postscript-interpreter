@@ -1,10 +1,3 @@
-# Zeid Al-Ameedi
-# 10-25-2018
-# HWK4 Part 1 is meant to mimic the ghost interpreter (postscript) style
-# For details on each function please see attached file containing requirements in the repository
-
-# HWK4 Part 2 is meant to implement additional ghost script features to be specific 
-# parsing, if, ifelse, for, forall, interpreter and  testcases following each of them
 import re #Given as help code. module
 
 opstack = [] #operand stack
@@ -49,14 +42,6 @@ def define(name, value):
                 myDict ={}
                 myDict[name]=value
                 dictstack.append(myDict)
-        # if len(dictstack) < 1:
-        #     myDict = {}
-        #     temp = 0
-        # else:
-        #         (myDict, temp) = dictPop()
-        # myDict[name] = value
-        # dictPush(myDict, temp)
-
 
 #Needs to be worked on in part 2
 def lookup(name):
@@ -68,13 +53,6 @@ def lookup(name):
 def stack():
     for i in reversed(opstack):
         print(i)
-
-
-# Arithmetic operators methods will reside below #
-
-#Each function does the corresponding action that it is named after
-#Before being pushed back onto the stack (The Answer)
-
 def add():
         if(len(opstack) > 1):
                 op1 = opPop()
@@ -303,36 +281,6 @@ def psIfElse():
                         opPush(elseStatement)
         else:
                 print("Stack doesn't have enough values.")
-#ERROR will reverse engineer to rewrite
-# def psFor():
-#         if (len(opstack) > 2):
-#                 exe = opPop() 
-#                 end = opPop() 
-#                 increment = opPop()
-#                 initial = opPop()
-
-#                 if initial < 0:
-#                         print("Error. for loop cannot work given arguments")
-#                         return False
-#                 if initial > end:
-#                         print("Error. for loop cannot work given arguments")
-#                         return False 
-#                 for i in range(4):
-#                         opPop()
-#                 if initial < end:
-#                         while initial <= end:
-#                                 opPush(initial)
-#                                 interpretSPS(exe)
-#                                 initial += increment
-#                 elif initial == end:
-#                         opPush(initial)
-#                         interpretSPS(exe)
-#                 else:
-#                         while initial >= end:
-#                                 opPush(initial)
-#                                 interpretSPS(exe)
-#                                 initial += increment
-#                 return 
 
 def psFor():
     exe = opPop()
@@ -364,24 +312,6 @@ def forAll():
                 opPush(index)
                 interpretSPS(exe)
 
-
-# def forAll():
-
-#     global opstack
-
-
-#     code = opstack[-1]
-#     arrayBlock = opstack[-2]
-
-#     temp1 = opPop()
-#     temp2 = opPop()
-
-#     for i in arrayBlock:
-#         opPush(i)
-#         interpretSPS(code)
-
-
-
 def tokenize(s):
     return re.findall("/?[a-zA-Z][a-zA-Z0-9_]*|[[][a-zA-Z0-9_\s!][a-zA-Z0-9_\s!]*[]]|[-]?[0-9]+|[}{]+|%.*|[^ \t\n]", s)
 
@@ -392,11 +322,6 @@ def isInt(n): #Courtesy of https://stackoverflow.com/questions/1265665/how-can-i
                 return True
         except ValueError:
                 return False
-        # num = int(n)
-        # if type(num) is int:
-        #         return True
-        # else:
-        #         return False
 def parseHelper(tokens):
         res=[]
         index = 0 # To keep track of each variable that demands typecast
@@ -445,17 +370,6 @@ def groupMatching(it):
                 else:
                         res.append(c)
         return False
-
-# def groupMatching2(it): #renamed to parse
-#         res = []
-#         for c in it:
-#                 if c == '}':
-#                         return res
-#                 elif c == '{':
-#                         res.append(groupMatching2(it))
-#                 else:
-#                         res.append(c)
-#         return False
 
 def group(s):
         res = []
@@ -933,14 +847,3 @@ def main_part2():
 
 if __name__ == '__main__':
     main_part2()
-
-
-     
-
-
-
-
-if __name__ == '__main__':
-
-    main_part2()
-    #main_part1()
