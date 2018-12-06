@@ -1,10 +1,3 @@
-# Zeid Al-Ameedi
-# 10-25-2018
-# HWK4 Part 1 is meant to mimic the ghost interpreter (postscript) style
-# For details on each function please see attached file containing requirements in the repository
-
-# HWK4 Part 2 is meant to implement additional ghost script features to be specific 
-# parsing, if, ifelse, for, forall, interpreter and  testcases following each of them
 import re #Given as help code. module
 
 opstack = [] #operand stack
@@ -50,14 +43,6 @@ def define(name, value):
         else:
                 (dictstack[-1][1])[name] = value
 
-
-#Needs to be worked on in part 2
-# def lookup(name):
-#         for myDict in reversed(dictstack):
-#             if myDict.get('/' + name, None) != None:
-#                     return myDict.get('/' + name, None)
-#         return None
-
 # Courtesty of stackoverflow in attaining nested dictionaries methods
 def lookup(name, scope):
         name = '/' + name
@@ -89,10 +74,6 @@ def StaticFinder(temp, name, index):
                 _ = temp.pop(index) 
                 return StaticFinder(temp, name, next)           
 
-# def stack():
-#     for i in reversed(opstack):
-#         print(i)
-
 def stack():
         print("==============")
         for i in reversed(opstack):
@@ -112,9 +93,6 @@ def stack():
 
 
 # Arithmetic operators methods will reside below #
-
-#Each function does the corresponding action that it is named after
-#Before being pushed back onto the stack (The Answer)
 
 def add():
         if(len(opstack) > 1):
@@ -386,21 +364,16 @@ def tokenize(s):
     return re.findall("/?[a-zA-Z][a-zA-Z0-9_]*|[[][a-zA-Z0-9_\s!][a-zA-Z0-9_\s!]*[]]|[-]?[0-9]+|[}{]+|%.*|[^ \t\n]", s)
 
 
-def isInt(n): #Courtesy of https://stackoverflow.com/questions/1265665/how-can-i-check-if-a-string-represents-an-int-without-using-try-except
+def isInt(n):
         try:
                 int(n)
                 return True
         except ValueError:
                 return False
-        # num = int(n)
-        # if type(num) is int:
-        #         return True
-        # else:
-        #         return False
+
 def parseHelper(tokens):
         res=[]
-        index = 0 # To keep track of each variable that demands typecast
-        # it = iter(tokens)
+        index = 0 
         for i in tokens:
                 if "." in i and isInt(i):
                         tokens[index] = float(tokens[index]) #Typecasted
@@ -445,17 +418,6 @@ def groupMatching(it):
                 else:
                         res.append(c)
         return False
-
-# def groupMatching2(it): #renamed to parse
-#         res = []
-#         for c in it:
-#                 if c == '}':
-#                         return res
-#                 elif c == '{':
-#                         res.append(groupMatching2(it))
-#                 else:
-#                         res.append(c)
-#         return False
 
 def group(s):
         res = []
@@ -556,20 +518,12 @@ def interpretSPS(code, scope): # code is a code array
         for var in code:
                 if isinstance(var, int) or isinstance(var, bool) or isinstance(var, float):
                         opPush(var) #If it's a bool or int just push it onto our stack
-                #Now if it's a string we have to check if it's a variable/string/function
-                # elif var[0] == "/":
-                #         opPush(var)
                 
                 elif isinstance(var, str):
                         if(var[0] == '/') or (var[0] == '('):
                                 opPush(var)
-                        # elif(var[0] == '('):
-                        #         opPush(var)
                         elif var in psFunctions:
                                 psFunctionCall(var)
-                        # elif var[0] == '[':
-                        #         myLst = list(var)
-                        #         opPush(myLst)
                         else:
                                 index, psVar = lookup(var, scope)
                                 if psVar != None:
@@ -583,11 +537,6 @@ def interpretSPS(code, scope): # code is a code array
                         opPush(var)
                 else:
                         print("Post script could not identify the variable")
-                                                        
-# def interpreter(s): # s is a string
-
-#         tokens = parse(tokenize(s))
-#         interpretSPS(parse(tokenize(s))) 
 
 def interpreter(s,scope):
         print("\n")
